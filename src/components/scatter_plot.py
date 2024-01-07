@@ -10,21 +10,20 @@ TEAM_DATA = pd.read_csv('Data/team_data.csv', delimiter=',')
 df = TEAM_DATA
 last_clicked_point = []
 
-
 # can be used to clear the last_clicked_point list
 def reset_points():
     global last_clicked_point
     last_clicked_point.clear()
 
-
 def render(app: Dash):
     @app.callback(
         Output(ids.SCATTER_PLOT, "figure"),
-        Input(ids.X_AXIS_DROPDOWN, "value"),
-        Input(ids.Y_AXIS_DROPDOWN, "value"),
-        Input(ids.FILTER, "value")
+        [Input(ids.X_AXIS_DROPDOWN, "value"),
+         Input(ids.Y_AXIS_DROPDOWN, "value"),
+         Input(ids.FILTER, "value"),
+         Input(ids.LAYERS, "value")]  # Adding layers input
     )
-    def update_scatter_plot(x_axis: str, y_axis: str, filter: int) -> Figure:
+    def update_scatter_plot(x_axis: str, y_axis: str, filter: int, selected_statistic: str) -> Figure:
 
         df["group"] = pd.Categorical(df["group"])
 
@@ -36,17 +35,21 @@ def render(app: Dash):
         order_of_categories = [
             {"group": ["group 1", "group 2", " group 3", "group 4", "group 5", "group 6", "group 7", "group 8"]}]
 
-        # print((x_axis, y_axis, filter))
+        # Applying the filter and existing scatter plot logic
         if filter == 1:
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter],  hover_data=['team'], 
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter],  hover_data=['team'],
                              labels={filters[filter]: "Groups"}, category_orders=order_of_categories[0])
 
         elif (filter > 1) and (filter <= 6):
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter][0], symbol=filters[filter][1], 
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter][0], symbol=filters[filter][1],
                              hover_data=['team'], labels={filters[filter][0]: filters[filter][2], filters[filter][1]: "Result" } )
-        
+
         else:
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'])
+            # Apply shading logic for selected statistic
+            quartiles = pd.qcut(df[selected_statistic], 4, labels=False)
+            colors = ['lightblue', 'blue', 'darkblue', 'navy']  # Shades of blue
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'],
+                             color=quartiles.apply(lambda x: colors[x]))
 
         return fig
 
