@@ -10,10 +10,12 @@ TEAM_DATA = pd.read_csv('Data/team_data.csv', delimiter=',')
 df = TEAM_DATA
 last_clicked_point = []
 
+
 # can be used to clear the last_clicked_point list
 def reset_points():
     global last_clicked_point
     last_clicked_point.clear()
+
 
 def render(app: Dash):
     @app.callback(
@@ -68,40 +70,39 @@ def render(app: Dash):
         return patched_figure
 
     @app.callback(
-        Output(ids.POINT_COMPARISON, 'children'),
+        Output(ids.POINT_COMPARISON, 'figure'),
         [Input(ids.SCATTER_PLOT, 'clickData')]
     )
     def display_click_data(click_data):
         if click_data is None:
-            return
+            return {}
 
         global last_clicked_point
         if len(last_clicked_point) == 0:
             last_clicked_point.append(click_data['points'][0])
-            return
+            return {}
         elif len(last_clicked_point) == 1:
             point1 = last_clicked_point.pop()
             point2 = click_data['points'][0]
             last_clicked_point.append(point2)
-            point1_detail = df[(df['team'] == point1['customdata'][0])]
-            point2_detail = df[(df['team'] == point2['customdata'][0])]
+            point1_detail = df[df['team'] == point1['customdata'][0]]
+            point2_detail = df[df['team'] == point2['customdata'][0]]
 
-            comparison_rows = []
-            for col in df.columns:
-                if col != 'team':
-                    comparison_rows.append(html.Tr([
-                        html.Td(col),
-                        html.Td(point1_detail[col].values[0]),
-                        html.Td(point2_detail[col].values[0])
-                    ]))
+            attributes = [col for col in df.columns if col != 'team']
+            values1 = point1_detail[attributes].values[0]
+            values2 = point2_detail[attributes].values[0]
 
-            return html.Div([
-                html.H4('Comparison'),
-                html.Table([
-                    html.Thead(
-                        html.Tr([html.Th('Attribute'), html.Th(point1['customdata'][0]), html.Th(point2['customdata'][0])])),
-                    html.Tbody(comparison_rows)
-                ])
-            ])
+            fig = px.bar(
+                x=list(values1) + list(values2),
+                y=attributes * 2,
+                color=[point1['customdata'][0]] * len(attributes) + [point2['customdata'][0]] * len(attributes),
+                labels={'x': 'Value', 'y': 'Attribute', 'color': 'Point'},
+                orientation='h',
+                title=f"Comparison between {point1['customdata'][0]} and {point2['customdata'][0]}",
+                width=1000,
+                height=500,
+            )
+
+            return fig
 
     return dcc.Graph(id=ids.SCATTER_PLOT)

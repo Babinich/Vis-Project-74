@@ -7,6 +7,7 @@ from . import search_bar
 from . import scatter_plot
 from . import layers
 
+
 def create_layout(app: Dash) -> dbc.Container:  # we get the information from the app what the title is etc.
     return dbc.Container(
         className="app-div",
@@ -54,10 +55,9 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                     )
                 ], width=10)
             ]),
-            dbc.Row([html.Div(id='point-comparison')])  # This holds the point comparison component
+            dbc.Row([html.Div([dcc.Graph(id="point-comparison")])])  # This holds the point comparison component
         ]
     )
-
 
 # html.Div(
 #             className="scatter-plot",
