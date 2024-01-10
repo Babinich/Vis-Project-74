@@ -124,7 +124,6 @@ def render(app: Dash):
             ), row=1, col=2)
 
             fig.update_layout(
-                title_text=f"Comparison between {point1['customdata'][0]} and {point2['customdata'][0]}",
                 yaxis2=dict(showticklabels=False),
             )
             return fig
