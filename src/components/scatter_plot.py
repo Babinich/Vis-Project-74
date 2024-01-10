@@ -3,6 +3,8 @@ import plotly.express as px
 import pandas as pd
 from dash.dependencies import Input, Output
 from plotly.graph_objs import Figure
+from plotly.subplots import make_subplots
+import plotly.graph_objs as go
 
 from . import ids
 
@@ -88,21 +90,43 @@ def render(app: Dash):
             point1_detail = df[df['team'] == point1['customdata'][0]]
             point2_detail = df[df['team'] == point2['customdata'][0]]
 
-            attributes = [col for col in df.columns if col != 'team']
+            attributes = ["goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90",
+                          "goals_assists_pens_per90", "shots_per90", "shots_on_target_per90",
+                          "gk_shots_on_target_against", "gk_save_pct", "possession", "passes_pct",
+                          "average_shot_distance", "dribbles_completed_pct", "fouled", "avg_age"]
+
             values1 = point1_detail[attributes].values[0]
             values2 = point2_detail[attributes].values[0]
 
-            fig = px.bar(
-                x=list(values1) + list(values2),
-                y=attributes * 2,
-                color=[point1['customdata'][0]] * len(attributes) + [point2['customdata'][0]] * len(attributes),
-                labels={'x': 'Value', 'y': 'Attribute', 'color': 'Point'},
-                orientation='h',
-                title=f"Comparison between {point1['customdata'][0]} and {point2['customdata'][0]}",
-                width=1000,
-                height=500,
-            )
+            fig = make_subplots(rows=1, cols=2,
+                                subplot_titles=[f'{point1["customdata"][0]}', f'{point2["customdata"][0]}'])
 
+            fig.add_trace(go.Bar(
+                x=values1,
+                y=attributes,
+                orientation='h',
+                name=point1['customdata'][0],
+                marker=dict(
+                    color='rgba(58, 71, 80, 0.6)',
+                    line=dict(color='rgba(58, 71, 80, 1.0)', width=1)
+                )
+            ), row=1, col=1)
+
+            fig.add_trace(go.Bar(
+                x=values2,
+                y=attributes,
+                orientation='h',
+                name=point2['customdata'][0],
+                marker=dict(
+                    color='rgba(246, 78, 139, 0.6)',
+                    line=dict(color='rgba(246, 78, 139, 1.0)', width=1)
+                )
+            ), row=1, col=2)
+
+            fig.update_layout(
+                title_text=f"Comparison between {point1['customdata'][0]} and {point2['customdata'][0]}",
+                yaxis2=dict(showticklabels=False),
+            )
             return fig
 
     return dcc.Graph(id=ids.SCATTER_PLOT)
