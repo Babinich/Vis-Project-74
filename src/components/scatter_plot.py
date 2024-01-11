@@ -11,6 +11,11 @@ from . import ids
 TEAM_DATA = pd.read_csv('Data/team_data.csv', delimiter=',')
 df = TEAM_DATA
 last_clicked_point = []
+filters = ["team", "group", ("pld_round_of_16", "won_round_of_16", "Round of 16"),
+                   ("pld_quarter_finals", "won_quarter_finals", "Quarter Finals"),
+                   ("pld_semi_finals", "won_semi_finals", "Semi Finals"),
+                   ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
+selected_filter = -1
 
 
 # can be used to clear the last_clicked_point list
@@ -30,23 +35,21 @@ def render(app: Dash):
     def update_scatter_plot(x_axis: str, y_axis: str, filter: int, selected_statistic: str) -> Figure:
 
         df["group"] = pd.Categorical(df["group"])
+        selected_filter = filter
 
-        filters = ["team", "group", ("pld_round_of_16", "won_round_of_16", "Round of 16"),
-                   ("pld_quarter_finals", "won_quarter_finals", "Quarter Finals"),
-                   ("pld_semi_finals", "won_semi_finals", "Semi Finals"),
-                   ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
 
         order_of_categories = [
             {"group": ["group 1", "group 2", " group 3", "group 4", "group 5", "group 6", "group 7", "group 8"]}]
 
         # Applying the filter and existing scatter plot logic
         if filter == 1:
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter],  hover_data=['team'],
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter], hover_data=['team'],
                              labels={filters[filter]: "Groups"}, category_orders=order_of_categories[0])
 
         elif (filter > 1) and (filter <= 6):
             fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter][0], symbol=filters[filter][1],
-                             hover_data=['team'], labels={filters[filter][0]: filters[filter][2], filters[filter][1]: "Result" } )
+                             hover_data=['team'],
+                             labels={filters[filter][0]: filters[filter][2], filters[filter][1]: "Result"})
 
         else:
             # Apply shading logic for selected statistic
@@ -70,6 +73,28 @@ def render(app: Dash):
         ]
         patched_figure['data'][0]['marker']['color'] = updated_markers
         return patched_figure
+
+    @app.callback(
+        Output('second-view', 'figure'),
+        [Input('cat-1', 'value'),
+         Input('cat-2', 'value'),
+         Input('cat-3', 'value'),
+         Input('cat-4', 'value')]
+    )
+    def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4):
+        selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4, 'team']
+        filtered_df = df[[each_value for each_value in selected_values if each_value is not None]]
+
+        fig = px.parallel_categories(filtered_df, dimensions=selected_values)
+
+        fig.update_traces(
+            marker=dict(
+                color='rgba(31,119,180,0.25)',
+                line=dict(color='rgba(31,119,180,1.0)', width=1)
+            ),
+            selector=dict(type='parallelcategories')
+        )
+        return fig
 
     @app.callback(
         Output(ids.POINT_COMPARISON, 'figure'),
@@ -125,6 +150,7 @@ def render(app: Dash):
 
             fig.update_layout(
                 yaxis2=dict(showticklabels=False),
+                showlegend=False
             )
             return fig
 

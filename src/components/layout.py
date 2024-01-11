@@ -8,6 +8,10 @@ from . import scatter_plot
 from . import layers
 
 
+category_list = ["goals_per90", "assists_per90",  "goals_pens_per90", "goals_assists_per90", "goals_assists_pens_per90",
+                 "shots_per90", "gk_shots_on_target_against", "games_complete"]
+
+
 def create_layout(app: Dash) -> dbc.Container:  # we get the information from the app what the title is etc.
     return dbc.Container(
         className="app-div",
@@ -58,6 +62,55 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                     html.Div([dcc.Graph(id="point-comparison")])
                 ], width=5)  # This holds the point comparison component
             ]),
+            dbc.Row([
+                dbc.Col([
+                    html.Div(
+                        dcc.Dropdown(
+                            id='cat-1',
+                            options=category_list,
+                            value=category_list[0],
+                            multi=False,
+                            placeholder="Select category 1",
+                            style={'marginTop': '3.5rem'},
+                        ),
+                    ),
+                    html.Div(
+                        dcc.Dropdown(
+                            id='cat-2',
+                            options=category_list,
+                            value=category_list[1],
+                            multi=False,
+                            placeholder="Select category 2",
+                            style={'marginTop': '1rem'},
+                        ),
+                    ),
+                    html.Div(
+                        dcc.Dropdown(
+                            id='cat-3',
+                            options=category_list,
+                            value=category_list[2],
+                            multi=False,
+                            placeholder="Select category 3",
+                            style={'marginTop': '1rem'},
+                        ),
+                    ),
+                    html.Div(
+                        dcc.Dropdown(
+                            id='cat-4',
+                            options=category_list,
+                            value=category_list[3],
+                            multi=False,
+                            placeholder="Select category 4",
+                            style={'marginTop': '1rem'},
+                        ),
+                    ),
+                ], width=2, style={'marginTop': '3%'}),
+                dbc.Col([
+                    html.Div([
+                        dcc.Graph(id="second-view")
+                    ])
+                ], width=10)
+            ])
         ]
     )
 
