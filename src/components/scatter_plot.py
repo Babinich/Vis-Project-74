@@ -15,7 +15,6 @@ filters = ["team", "group", ("pld_round_of_16", "won_round_of_16", "Round of 16"
                    ("pld_quarter_finals", "won_quarter_finals", "Quarter Finals"),
                    ("pld_semi_finals", "won_semi_finals", "Semi Finals"),
                    ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
-selected_filter = -1
 
 
 # can be used to clear the last_clicked_point list
@@ -35,8 +34,6 @@ def render(app: Dash):
     def update_scatter_plot(x_axis: str, y_axis: str, filter: int, selected_statistic: str) -> Figure:
 
         df["group"] = pd.Categorical(df["group"])
-        selected_filter = filter
-
 
         order_of_categories = [
             {"group": ["group 1", "group 2", " group 3", "group 4", "group 5", "group 6", "group 7", "group 8"]}]
@@ -79,21 +76,22 @@ def render(app: Dash):
         [Input('cat-1', 'value'),
          Input('cat-2', 'value'),
          Input('cat-3', 'value'),
-         Input('cat-4', 'value')]
+         Input('cat-4', 'value'),
+         Input(ids.FILTER, "value")],
     )
-    def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4):
+    def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter):
         selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4, 'team']
-        filtered_df = df[[each_value for each_value in selected_values if each_value is not None]]
+        color = 'team'
+        if filter == 1:
+            color = filters[filter]
+        elif 1 < filter <= 6:
+            color = filters[filter][0]
 
-        fig = px.parallel_categories(filtered_df, dimensions=selected_values)
+        color_mapping = {value: i for i, value in enumerate(df[color].unique())}
+        df['selected_filter'] = df[color].map(color_mapping)
 
-        fig.update_traces(
-            marker=dict(
-                color='rgba(31,119,180,0.25)',
-                line=dict(color='rgba(31,119,180,1.0)', width=1)
-            ),
-            selector=dict(type='parallelcategories')
-        )
+        fig = px.parallel_categories(df, dimensions=selected_values, color='selected_filter',
+                                     color_continuous_scale='Viridis')
         return fig
 
     @app.callback(
