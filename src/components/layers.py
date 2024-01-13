@@ -3,14 +3,10 @@ from dash.dependencies import Input, Output
 from . import ids
 
 def render(app: Dash) -> html.Div:
-    # List of numerical statistics for shading
+    # Specific columns for shading
     statistics = [
-        "goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90",
-        "goals_assists_pens_per90", "shots_per90", "shots_on_target_per90", "xg_per90",
-        "xg_assist_per90", "npxg_per90", "xg_xg_assist_per90", "npxg_xg_assist_per90",
-        "gk_shots_on_target_against", "gk_save_pct", "games_complete", "gk_clean_sheets_pct",
-        "possession", "passes_pct", "average_shot_distance", "dribbles_completed_pct",
-        "tackles_won", "fouled", "avg_age", "cards_yellow", "cards_red", "cards_yellow_red"
+        "possession", "passes_pct", "dribbles_completed_pct", 
+        "tackles_won", "fouled", "avg_age", "cards_yellow"
     ]
 
     return html.Div(

@@ -127,5 +127,21 @@ def render(app: Dash):
                 yaxis2=dict(showticklabels=False),
             )
             return fig
+    @app.callback(
+        Output('color-bar', 'children'),  # Output to the color-bar div
+        [Input(ids.LAYERS, 'value')]     # Input from layers dropdown
+    )
+    def update_color_bar(selected_statistic):
+        if not selected_statistic or selected_statistic not in df.columns:
+            return html.Div()  # Return empty div if no valid statistic is selected
 
+        # Define your color shades (same as used in scatter plot)
+        colors = ['lightblue', 'blue', 'darkblue', 'navy']
+
+        # Create a horizontal bar divided into four color sections
+        color_bar_style = {'display': 'flex', 'height': '20px'}
+        color_sections = [html.Div(style={'background-color': color, 'flex': 1}) for color in colors]
+
+        return html.Div(color_sections, style=color_bar_style)
+    
     return dcc.Graph(id=ids.SCATTER_PLOT)
