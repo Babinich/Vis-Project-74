@@ -55,7 +55,8 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                     )
                 ], width=10)
             ]),
-            dbc.Row([html.Div([dcc.Graph(id="point-comparison")])])  # This holds the point comparison component
+            dbc.Row([html.Div([dcc.Graph(id="point-comparison")])]),  # This holds the point comparison component
+            dbc.Row([html.Div([dcc.Graph(id="hover-plot")])]),
         ]
     )
 
