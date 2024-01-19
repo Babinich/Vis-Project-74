@@ -88,7 +88,6 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                         dcc.Dropdown(
                             id='cat-3',
                             options=category_list,
-                            value=category_list[2],
                             multi=False,
                             placeholder="Select category 3",
                             style={'marginTop': '1rem'},
@@ -98,7 +97,6 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                         dcc.Dropdown(
                             id='cat-4',
                             options=category_list,
-                            value=category_list[3],
                             multi=False,
                             placeholder="Select category 4",
                             style={'marginTop': '1rem'},
