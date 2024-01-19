@@ -12,9 +12,9 @@ TEAM_DATA = pd.read_csv('Data/team_data.csv', delimiter=',')
 df = TEAM_DATA
 last_clicked_point = []
 filters = ["team", "group", ("pld_round_of_16", "won_round_of_16", "Round of 16"),
-                   ("pld_quarter_finals", "won_quarter_finals", "Quarter Finals"),
-                   ("pld_semi_finals", "won_semi_finals", "Semi Finals"),
-                   ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
+           ("pld_quarter_finals", "won_quarter_finals", "Quarter Finals"),
+           ("pld_semi_finals", "won_semi_finals", "Semi Finals"),
+           ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
 
 
 # can be used to clear the last_clicked_point list
@@ -55,6 +55,10 @@ def render(app: Dash):
             fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'],
                              color=quartiles.apply(lambda x: colors[x]))
 
+        fig.update_layout(
+            height=600,
+            width=600,
+        )
         return fig
 
     @app.callback(
@@ -90,8 +94,10 @@ def render(app: Dash):
         color_mapping = {value: i for i, value in enumerate(df[color].unique())}
         df['selected_filter'] = df[color].map(color_mapping)
 
-        fig = px.parallel_categories(df, dimensions=selected_values, color='selected_filter',
-                                     color_continuous_scale='Viridis')
+        selected_columns = [sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None] + ['selected_filter']
+        df_sorted = df[selected_columns].sort_values(selected_columns)
+
+        fig = px.parallel_categories(df_sorted, dimensions=selected_values, color='selected_filter')
         return fig
 
     @app.callback(
@@ -113,42 +119,71 @@ def render(app: Dash):
             point1_detail = df[df['team'] == point1['customdata'][0]]
             point2_detail = df[df['team'] == point2['customdata'][0]]
 
-            attributes = ["goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90",
-                          "goals_assists_pens_per90", "shots_per90", "shots_on_target_per90",
-                          "gk_shots_on_target_against", "gk_save_pct", "possession", "passes_pct",
-                          "average_shot_distance", "dribbles_completed_pct", "fouled", "avg_age"]
+            attributes1 = ["goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90",
+                           "goals_assists_pens_per90", "shots_per90", "shots_on_target_per90"]
 
-            values1 = point1_detail[attributes].values[0]
-            values2 = point2_detail[attributes].values[0]
+            attributes2 = ["gk_shots_on_target_against", "gk_save_pct", "possession", "passes_pct",
+                           "average_shot_distance", "dribbles_completed_pct", "fouled", "avg_age"]
 
-            fig = make_subplots(rows=1, cols=2,
-                                subplot_titles=[f'{point1["customdata"][0]}', f'{point2["customdata"][0]}'])
+            values1 = point1_detail[attributes1].values[0]
+            values2 = point2_detail[attributes1].values[0]
 
+            values3 = point1_detail[attributes2].values[0]
+            values4 = point2_detail[attributes2].values[0]
+
+            fig = make_subplots(rows=1, cols=2)
             fig.add_trace(go.Bar(
-                x=values1,
-                y=attributes,
-                orientation='h',
+                x=attributes1,
+                y=values1,
+                orientation='v',  # Changed to vertical
                 name=point1['customdata'][0],
                 marker=dict(
                     color='rgba(58, 71, 80, 0.6)',
                     line=dict(color='rgba(58, 71, 80, 1.0)', width=1)
-                )
+                ),
+                showlegend=True
             ), row=1, col=1)
 
             fig.add_trace(go.Bar(
-                x=values2,
-                y=attributes,
-                orientation='h',
+                x=attributes1,
+                y=values2,
+                orientation='v',  # Changed to vertical
                 name=point2['customdata'][0],
                 marker=dict(
                     color='rgba(246, 78, 139, 0.6)',
                     line=dict(color='rgba(246, 78, 139, 1.0)', width=1)
-                )
+                ),
+                showlegend=True
+            ), row=1, col=1)
+
+            fig.add_trace(go.Bar(
+                x=attributes2,
+                y=values3,
+                orientation='v',  # Changed to vertical
+                name=point1['customdata'][0],
+                marker=dict(
+                    color='rgba(58, 71, 80, 0.6)',
+                    line=dict(color='rgba(58, 71, 80, 1.0)', width=1)
+                ),
+                showlegend=False
+            ), row=1, col=2)
+
+            fig.add_trace(go.Bar(
+                x=attributes2,
+                y=values4,
+                orientation='v',  # Changed to vertical
+                name=point2['customdata'][0],
+                marker=dict(
+                    color='rgba(246, 78, 139, 0.6)',
+                    line=dict(color='rgba(246, 78, 139, 1.0)', width=1)
+                ),
+                showlegend=False
             ), row=1, col=2)
 
             fig.update_layout(
-                yaxis2=dict(showticklabels=False),
-                showlegend=False
+                barmode='group',
+                height=700,
+                width=600,
             )
             return fig
 
