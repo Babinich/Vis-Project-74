@@ -121,21 +121,18 @@ def render(app: Dash):
 
             attributes1 = ["goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90",
                            "goals_assists_pens_per90", "shots_per90", "shots_on_target_per90"]
-
             attributes2 = ["gk_shots_on_target_against", "gk_save_pct", "possession", "passes_pct",
                            "average_shot_distance", "dribbles_completed_pct", "fouled", "avg_age"]
+
+            fig = make_subplots(rows=1, cols=2)
 
             values1 = point1_detail[attributes1].values[0]
             values2 = point2_detail[attributes1].values[0]
 
-            values3 = point1_detail[attributes2].values[0]
-            values4 = point2_detail[attributes2].values[0]
-
-            fig = make_subplots(rows=1, cols=2)
             fig.add_trace(go.Bar(
                 x=attributes1,
                 y=values1,
-                orientation='v',  # Changed to vertical
+                orientation='v',
                 name=point1['customdata'][0],
                 marker=dict(
                     color='rgba(58, 71, 80, 0.6)',
@@ -143,11 +140,10 @@ def render(app: Dash):
                 ),
                 showlegend=True
             ), row=1, col=1)
-
             fig.add_trace(go.Bar(
                 x=attributes1,
                 y=values2,
-                orientation='v',  # Changed to vertical
+                orientation='v',
                 name=point2['customdata'][0],
                 marker=dict(
                     color='rgba(246, 78, 139, 0.6)',
@@ -156,10 +152,13 @@ def render(app: Dash):
                 showlegend=True
             ), row=1, col=1)
 
+            values3 = point1_detail[attributes2].values[0]
+            values4 = point2_detail[attributes2].values[0]
+
             fig.add_trace(go.Bar(
                 x=attributes2,
                 y=values3,
-                orientation='v',  # Changed to vertical
+                orientation='v',
                 name=point1['customdata'][0],
                 marker=dict(
                     color='rgba(58, 71, 80, 0.6)',
@@ -167,11 +166,10 @@ def render(app: Dash):
                 ),
                 showlegend=False
             ), row=1, col=2)
-
             fig.add_trace(go.Bar(
                 x=attributes2,
                 y=values4,
-                orientation='v',  # Changed to vertical
+                orientation='v',
                 name=point2['customdata'][0],
                 marker=dict(
                     color='rgba(246, 78, 139, 0.6)',
