@@ -1,11 +1,10 @@
-from dash import Dash, html, dcc, Patch
-import plotly.express as px
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objs as go
+from dash import Dash, dcc, Patch
 from dash.dependencies import Input, Output
-import seaborn as sns
 from plotly.graph_objs import Figure
 from plotly.subplots import make_subplots
-import plotly.graph_objs as go
 
 from . import ids
 
