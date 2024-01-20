@@ -76,28 +76,30 @@ def render(app: Dash):
         return patched_figure
 
     @app.callback(
-        Output('second-view', 'figure'),
-        [Input('cat-1', 'value'),
-         Input('cat-2', 'value'),
-         Input('cat-3', 'value'),
-         Input('cat-4', 'value'),
+        Output(ids.SECOND_VIEW, 'figure'),
+        [Input(ids.CATEGORY_DROPDOWN_1, 'value'),
+         Input(ids.CATEGORY_DROPDOWN_2, 'value'),
+         Input(ids.CATEGORY_DROPDOWN_3, 'value'),
+         Input(ids.CATEGORY_DROPDOWN_4, 'value'),
          Input(ids.FILTER, "value")],
     )
     def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter):
         selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4, 'team']
-        color = 'team'
+        filter_name = 'team'
         if filter == 1:
-            color = filters[filter]
+            filter_name = filters[filter]
         elif 1 < filter <= 6:
-            color = filters[filter][0]
+            filter_name = filters[filter][0]
 
-        color_mapping = {value: i for i, value in enumerate(df[color].unique())}
-        df['selected_filter'] = df[color].map(color_mapping)
+        color_mapping = {value: i for i, value in enumerate(df[filter_name].unique())}
+        filter_key = 'filter_' + filter_name
+        df[filter_key] = df[filter_name].map(color_mapping)
 
-        selected_columns = [sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None] + ['selected_filter']
+        selected_columns = ([sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None]
+                            + [filter_key])
         df_sorted = df[selected_columns].sort_values(selected_columns)
 
-        fig = px.parallel_categories(df_sorted, dimensions=selected_values, color='selected_filter')
+        fig = px.parallel_categories(df_sorted, dimensions=selected_columns, color=filter_key)
         return fig
 
     @app.callback(
