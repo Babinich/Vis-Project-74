@@ -8,11 +8,15 @@ from . import scatter_plot
 from . import layers
 
 
+
+
+
 category_list = ["goals_per90", "assists_per90",  "goals_pens_per90", "goals_assists_per90", "goals_assists_pens_per90",
                  "shots_per90", "gk_shots_on_target_against", "games_complete"]
 
 
 def create_layout(app: Dash) -> dbc.Container:  # we get the information from the app what the title is etc.
+
     return dbc.Container(
         className="app-div",
         children=[
@@ -50,17 +54,20 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                         children=[layers.render(app)],
                         style={'width': '70%'},
                     ),
+                    html.Div(id='color-bar', style={'height': '50px', 'marginTop': '20px'}),  # Color bar
                 ], width=2, style={'marginTop': '3%'}),
+
                 dbc.Col([
                     html.Div(
                         className="scatter-plot",
                         children=[scatter_plot.render(app)],
                         style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}
                     )
-                ], width=5),
+                ], width=8),
+
                 dbc.Col([
-                    html.Div([dcc.Graph(id="point-comparison")])
-                ], width=5)  # This holds the point comparison component
+                    html.Div([dcc.Graph(id="point-comparison")])  # Point comparison component
+                ], width=2)
             ]),
             dbc.Row([
                 dbc.Col([
@@ -111,6 +118,7 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
             ])
         ]
     )
+
 
 # html.Div(
 #             className="scatter-plot",
