@@ -1,10 +1,12 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
-from dash import Dash, dcc, Patch
+from dash import Dash, dcc, Patch, html
 from dash.dependencies import Input, Output
 from plotly.graph_objs import Figure
 from plotly.subplots import make_subplots
+
+
 
 from . import ids
 
@@ -49,16 +51,28 @@ def render(app: Dash):
                              labels={filters[filter][0]: filters[filter][2], filters[filter][1]: "Result"})
 
         else:
-            # Apply shading logic for selected statistic
-            quartiles = pd.qcut(df[selected_statistic], 4, labels=False)
-            colors = ['lightblue', 'blue', 'darkblue', 'navy']  # Shades of blue
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'],
-                             color=quartiles.apply(lambda x: colors[x]))
+            if selected_statistic and selected_statistic in df.columns:
+                # Define your color shades for quartiles
+                quartile_labels = ['lightblue', 'blue', 'darkblue', 'navy']
+                quartiles = pd.qcut(df[selected_statistic], 4, labels=quartile_labels)
 
-        fig.update_layout(
-            height=600,
-            width=600,
-        )
+                # Adjust shades if they are too similar
+                color_discrete_map = {
+                    'lightblue': '#67D3F3',  # Lighter blue
+                    'blue': '#0177D9',       # Regular blue
+                    'darkblue': '#01298B',   # Darker blue
+                    'navy': '#000F52'        # Navy blue
+                }
+
+                fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'],
+                                color=quartiles,  # This assigns a descriptive label to each point
+                                color_discrete_map=color_discrete_map  # This maps each label to your custom colors
+                             )
+            else:
+                fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'])
+
+        # Update layout if necessary
+        fig.update_layout(height=600, width=600)
         return fig
 
     @app.callback(
@@ -201,12 +215,18 @@ def render(app: Dash):
             return html.Div()  # Return empty div if no valid statistic is selected
 
         # Define your color shades (same as used in scatter plot)
-        colors = ['lightblue', 'blue', 'darkblue', 'navy']
+        color_discrete_map = {
+            'lightblue': '#67D3F3',  # Lighter blue
+            'blue': '#0177D9',       # Regular blue
+            'darkblue': '#01298B',   # Darker blue
+            'navy': '#000F52'        # Navy blue
+        }
 
         # Create a horizontal bar divided into four color sections
         color_bar_style = {'display': 'flex', 'height': '20px'}
-        color_sections = [html.Div(style={'background-color': color, 'flex': 1}) for color in colors]
+        color_sections = [html.Div(style={'background-color': color, 'flex': '1'}) for color in color_discrete_map.values()]
 
         return html.Div(color_sections, style=color_bar_style)
+
     
     return dcc.Graph(id=ids.SCATTER_PLOT)

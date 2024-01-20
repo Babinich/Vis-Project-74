@@ -19,6 +19,6 @@ def render(app: Dash) -> html.Div:
                 multi=False,
                 clearable=False
             ),
-            # Add a color legend or bar here if needed
+            
         ]
     )
