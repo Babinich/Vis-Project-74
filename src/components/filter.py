@@ -20,7 +20,7 @@ def render(app: Dash) -> html.Div:
                          {"label": "third_place", "value": 5},
                          {"label": "finals", "value": 6},
                          ],
-                value="teams",
+                value=0,
                 multi=False, 
                 clearable=False
 
