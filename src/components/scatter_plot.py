@@ -6,8 +6,6 @@ from dash.dependencies import Input, Output
 from plotly.graph_objs import Figure
 from plotly.subplots import make_subplots
 
-
-
 from . import ids
 
 TEAM_DATA = pd.read_csv('Data/team_data.csv', delimiter=',')
@@ -40,6 +38,7 @@ def render(app: Dash):
         order_of_categories = [
             {"group": ["group 1", "group 2", " group 3", "group 4", "group 5", "group 6", "group 7", "group 8"]}]
 
+        # our_color =
         # Applying the filter and existing scatter plot logic
         if filter == 1:
             fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter], hover_data=['team'],
@@ -59,20 +58,19 @@ def render(app: Dash):
                 # Adjust shades if they are too similar
                 color_discrete_map = {
                     'lightblue': '#67D3F3',  # Lighter blue
-                    'blue': '#0177D9',       # Regular blue
-                    'darkblue': '#01298B',   # Darker blue
-                    'navy': '#000F52'        # Navy blue
+                    'blue': '#0177D9',  # Regular blue
+                    'darkblue': '#01298B',  # Darker blue
+                    'navy': '#000F52'  # Navy blue
                 }
 
                 fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'],
-                                color=quartiles,  # This assigns a descriptive label to each point
-                                color_discrete_map=color_discrete_map  # This maps each label to your custom colors
-                             )
+                                 color=quartiles,  # This assigns a descriptive label to each point
+                                 color_discrete_map=color_discrete_map  # This maps each label to your custom colors
+                                 )
             else:
                 fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'])
 
         # Update layout if necessary
-        fig.update_layout(height=600, width=600)
         return fig
 
     @app.callback(
@@ -98,7 +96,7 @@ def render(app: Dash):
          Input(ids.FILTER, "value")],
     )
     def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter):
-        selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4, 'team']
+        selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4]
         filter_name = 'team'
         if filter == 1:
             filter_name = filters[filter]
@@ -111,15 +109,15 @@ def render(app: Dash):
         colorscale = px.colors.qualitative.Set1
         df[filter_key] = df[filter_name].map(color_mapping)
 
-        selected_columns = ([sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None]
-                            + [filter_key])
+        selected_columns = [filter_key] + ([sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None])
+        selected_columns += ['team']
         df_sorted = df[selected_columns].sort_values(selected_columns)
 
         fig = px.parallel_categories(df_sorted, dimensions=selected_columns, color=filter_key,
                                      color_continuous_scale=colorscale[0:num_unique])
         fig.update_layout(coloraxis_colorbar=dict(tickvals=[i for i in range(0, num_unique)],
                                                   ticktext=df[filter_name].unique(),
-                                                  tickmode='array'))
+                                                  tickmode='array'), height=800, width=1000)
         return fig
 
     @app.callback(
@@ -206,9 +204,10 @@ def render(app: Dash):
                 width=600,
             )
             return fig
+
     @app.callback(
         Output('color-bar', 'children'),  # Output to the color-bar div
-        [Input(ids.LAYERS, 'value')]     # Input from layers dropdown
+        [Input(ids.LAYERS, 'value')]  # Input from layers dropdown
     )
     def update_color_bar(selected_statistic):
         if not selected_statistic or selected_statistic not in df.columns:
@@ -217,16 +216,16 @@ def render(app: Dash):
         # Define your color shades (same as used in scatter plot)
         color_discrete_map = {
             'lightblue': '#67D3F3',  # Lighter blue
-            'blue': '#0177D9',       # Regular blue
-            'darkblue': '#01298B',   # Darker blue
-            'navy': '#000F52'        # Navy blue
+            'blue': '#0177D9',  # Regular blue
+            'darkblue': '#01298B',  # Darker blue
+            'navy': '#000F52'  # Navy blue
         }
 
         # Create a horizontal bar divided into four color sections
         color_bar_style = {'display': 'flex', 'height': '20px'}
-        color_sections = [html.Div(style={'background-color': color, 'flex': '1'}) for color in color_discrete_map.values()]
+        color_sections = [html.Div(style={'background-color': color, 'flex': '1'}) for color in
+                          color_discrete_map.values()]
 
         return html.Div(color_sections, style=color_bar_style)
 
-    
     return dcc.Graph(id=ids.SCATTER_PLOT)
