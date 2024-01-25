@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
@@ -17,6 +18,7 @@ filters = ["team", "group", ("pld_round_of_16", "won_round_of_16", "Round of 16"
            ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
 all_colors = (px.colors.qualitative.Bold[:9] + px.colors.qualitative.Pastel[:9]
               + px.colors.qualitative.Prism[:9] + px.colors.qualitative.Safe[:9])
+last_filter = 0
 
 
 # can be used to clear the last_clicked_point list
@@ -31,11 +33,16 @@ def render(app: Dash):
         [Input(ids.X_AXIS_DROPDOWN, "value"),
          Input(ids.Y_AXIS_DROPDOWN, "value"),
          Input(ids.FILTER, "value"),
-         Input(ids.LAYERS, "value")]  # Adding layers input
+         Input(ids.LAYERS, "value"),
+         Input(ids.SCATTER_PLOT, "clickData")]
     )
-    def update_scatter_plot(x_axis: str, y_axis: str, filter: int, selected_statistic: str) -> Figure:
-
+    def update_scatter_plot(x_axis: str, y_axis: str, filter: int, selected_statistic: str, sp_clicked_data) -> Figure:
         df["group"] = pd.Categorical(df["group"])
+        print(filter, sp_clicked_data)
+        global last_filter
+
+        if filter != last_filter and sp_clicked_data is not None:
+            sp_clicked_data = None
 
         if filter == 1:
             num_unique = len(df[filters[filter]].unique())
@@ -58,6 +65,15 @@ def render(app: Dash):
             fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter], color_discrete_sequence=colorscale,
                              hover_data=['team'])
 
+        if sp_clicked_data is not None and 'points' in sp_clicked_data:
+            clicked_team = sp_clicked_data['points'][0]['customdata'][0]
+            team_selector = (df['team'] == clicked_team)
+            fig.update_traces(
+                marker=dict(size=12, line=dict(width=2, color='DarkSlateGray')),
+                selector=dict(mode='markers', customdata=clicked_team)
+            )
+
+        last_filter = filter
         return fig
 
     @app.callback(
@@ -80,11 +96,17 @@ def render(app: Dash):
          Input(ids.CATEGORY_DROPDOWN_2, 'value'),
          Input(ids.CATEGORY_DROPDOWN_3, 'value'),
          Input(ids.CATEGORY_DROPDOWN_4, 'value'),
-         Input(ids.FILTER, "value")],
+         Input(ids.FILTER, "value"),
+         Input(ids.SCATTER_PLOT, "clickData")],
     )
-    def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter):
+    def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter, sp_clicked_data):
         selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4]
         filter_name = 'team'
+        global last_filter
+
+        if filter != last_filter and sp_clicked_data is not None:
+            sp_clicked_data = None
+
         if filter == 1:
             filter_name = filters[filter]
         elif 1 < filter <= 6:
@@ -104,6 +126,14 @@ def render(app: Dash):
         fig.update_layout(coloraxis_colorbar=dict(tickvals=[i for i in range(0, num_unique)],
                                                   ticktext=df[filter_name].unique(),
                                                   tickmode='array'), height=900, width=1100)
+
+        if sp_clicked_data is not None and 'points' in sp_clicked_data:
+            clicked_team = sp_clicked_data['points'][0]['customdata'][0]
+            fig.update_traces(line=dict(color=[
+                'black' if team == clicked_team else color
+                for team, color in zip(df_sorted['team'], fig.data[0]['line']['color'])
+            ]))
+
         return fig
 
     @app.callback(
