@@ -15,6 +15,8 @@ filters = ["team", "group", ("pld_round_of_16", "won_round_of_16", "Round of 16"
            ("pld_quarter_finals", "won_quarter_finals", "Quarter Finals"),
            ("pld_semi_finals", "won_semi_finals", "Semi Finals"),
            ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
+all_colors = (px.colors.qualitative.Bold[:9] + px.colors.qualitative.Pastel[:9]
+              + px.colors.qualitative.Prism[:9] + px.colors.qualitative.Safe[:9])
 
 
 # can be used to clear the last_clicked_point list
@@ -35,42 +37,27 @@ def render(app: Dash):
 
         df["group"] = pd.Categorical(df["group"])
 
-        order_of_categories = [
-            {"group": ["group 1", "group 2", " group 3", "group 4", "group 5", "group 6", "group 7", "group 8"]}]
-
-        # our_color =
-        # Applying the filter and existing scatter plot logic
         if filter == 1:
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter], hover_data=['team'],
-                             labels={filters[filter]: "Groups"}, category_orders=order_of_categories[0])
+            num_unique = len(df[filters[filter]].unique())
+            colorscale = all_colors[0:num_unique]
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis],
+                             color=filters[filter], color_discrete_sequence=colorscale,
+                             hover_data=['team'], labels={filters[filter]: "Groups"})
 
         elif (filter > 1) and (filter <= 6):
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter][0], symbol=filters[filter][1],
-                             hover_data=['team'],
+            num_unique = len(df[filters[filter][0]].unique())
+            colorscale = all_colors[0:num_unique]
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis],
+                             color=filters[filter][0], color_discrete_sequence=colorscale,
+                             symbol=filters[filter][1], hover_data=['team'],
                              labels={filters[filter][0]: filters[filter][2], filters[filter][1]: "Result"})
 
         else:
-            if selected_statistic and selected_statistic in df.columns:
-                # Define your color shades for quartiles
-                quartile_labels = ['lightblue', 'blue', 'darkblue', 'navy']
-                quartiles = pd.qcut(df[selected_statistic], 4, labels=quartile_labels)
+            num_unique = len(df[filters[filter]].unique())
+            colorscale = all_colors[0:num_unique]
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter], color_discrete_sequence=colorscale,
+                             hover_data=['team'])
 
-                # Adjust shades if they are too similar
-                color_discrete_map = {
-                    'lightblue': '#67D3F3',  # Lighter blue
-                    'blue': '#0177D9',  # Regular blue
-                    'darkblue': '#01298B',  # Darker blue
-                    'navy': '#000F52'  # Navy blue
-                }
-
-                fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'],
-                                 color=quartiles,  # This assigns a descriptive label to each point
-                                 color_discrete_map=color_discrete_map  # This maps each label to your custom colors
-                                 )
-            else:
-                fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'])
-
-        # Update layout if necessary
         return fig
 
     @app.callback(
@@ -105,19 +92,18 @@ def render(app: Dash):
 
         color_mapping = {value: i for i, value in enumerate(df[filter_name].unique())}
         filter_key = 'filter_' + filter_name
-        num_unique = len(df[filter_name].unique())
-        colorscale = px.colors.qualitative.Set1
         df[filter_key] = df[filter_name].map(color_mapping)
 
         selected_columns = [filter_key] + ([sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None])
         selected_columns += ['team']
+        num_unique = len(df[filter_name].unique())
+        colorscale = all_colors[0:num_unique]
         df_sorted = df[selected_columns].sort_values(selected_columns)
-
         fig = px.parallel_categories(df_sorted, dimensions=selected_columns, color=filter_key,
-                                     color_continuous_scale=colorscale[0:num_unique])
+                                     color_continuous_scale=colorscale)
         fig.update_layout(coloraxis_colorbar=dict(tickvals=[i for i in range(0, num_unique)],
                                                   ticktext=df[filter_name].unique(),
-                                                  tickmode='array'), height=800, width=1000)
+                                                  tickmode='array'), height=900, width=1100)
         return fig
 
     @app.callback(
@@ -197,12 +183,6 @@ def render(app: Dash):
                 ),
                 showlegend=False
             ), row=1, col=2)
-
-            fig.update_layout(
-                barmode='group',
-                height=700,
-                width=600,
-            )
             return fig
 
     @app.callback(
