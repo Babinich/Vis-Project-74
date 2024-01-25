@@ -37,20 +37,15 @@ def render(app: Dash):
 
         df["group"] = pd.Categorical(df["group"])
 
-        order_of_categories = [
-            {"group": ["group 1", "group 2", " group 3", "group 4", "group 5", "group 6", "group 7", "group 8"]}]
-
-        # Applying the filter and existing scatter plot logic
         if filter == 1:
             num_unique = len(df[filters[filter]].unique())
             colorscale = all_colors[0:num_unique]
             fig = px.scatter(df, x=df[x_axis], y=df[y_axis],
                              color=filters[filter], color_discrete_sequence=colorscale,
-                             hover_data=['team'], labels={filters[filter]: "Groups"},
-                             category_orders=order_of_categories[0])
+                             hover_data=['team'], labels={filters[filter]: "Groups"})
 
         elif (filter > 1) and (filter <= 6):
-            num_unique = len(df[filters[filter]].unique())
+            num_unique = len(df[filters[filter][0]].unique())
             colorscale = all_colors[0:num_unique]
             fig = px.scatter(df, x=df[x_axis], y=df[y_axis],
                              color=filters[filter][0], color_discrete_sequence=colorscale,
@@ -95,7 +90,7 @@ def render(app: Dash):
         elif 1 < filter <= 6:
             filter_name = filters[filter][0]
 
-        color_mapping = {value: i for i, value in enumerate(df[filter_name].sort_values().unique())}
+        color_mapping = {value: i for i, value in enumerate(df[filter_name].unique())}
         filter_key = 'filter_' + filter_name
         df[filter_key] = df[filter_name].map(color_mapping)
 
@@ -107,9 +102,8 @@ def render(app: Dash):
         fig = px.parallel_categories(df_sorted, dimensions=selected_columns, color=filter_key,
                                      color_continuous_scale=colorscale)
         fig.update_layout(coloraxis_colorbar=dict(tickvals=[i for i in range(0, num_unique)],
-                                                  ticktext=df[filter_name].sort_values().unique(),
-                                                  tickmode='array'), height=800, width=1000)
-        # fig.update_traces(dimensions=[{"categoryorder": "category descending"} for _ in selected_columns])
+                                                  ticktext=df[filter_name].unique(),
+                                                  tickmode='array'), height=900, width=1100)
         return fig
 
     @app.callback(
@@ -189,12 +183,6 @@ def render(app: Dash):
                 ),
                 showlegend=False
             ), row=1, col=2)
-
-            fig.update_layout(
-                barmode='group',
-                height=700,
-                width=600,
-            )
             return fig
 
     @app.callback(
