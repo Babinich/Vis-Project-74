@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
@@ -18,13 +17,15 @@ filters = ["team", "group", ("pld_round_of_16", "won_round_of_16", "Round of 16"
            ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
 all_colors = (px.colors.qualitative.Bold[:9] + px.colors.qualitative.Pastel[:9]
               + px.colors.qualitative.Prism[:9] + px.colors.qualitative.Safe[:9])
-last_filter = 0
+locked = False
+last_click_point_fig = None
+last_button_click = None
+teams_from_pca = []
 
 
-# can be used to clear the last_clicked_point list
-def reset_points():
+def reset_last_clicked_point():
     global last_clicked_point
-    last_clicked_point.clear()
+    last_clicked_point = []
 
 
 def render(app: Dash):
@@ -33,16 +34,10 @@ def render(app: Dash):
         [Input(ids.X_AXIS_DROPDOWN, "value"),
          Input(ids.Y_AXIS_DROPDOWN, "value"),
          Input(ids.FILTER, "value"),
-         Input(ids.LAYERS, "value"),
-         Input(ids.SCATTER_PLOT, "clickData")]
+         Input(ids.SECOND_VIEW, "clickData")]
     )
-    def update_scatter_plot(x_axis: str, y_axis: str, filter: int, selected_statistic: str, sp_clicked_data) -> Figure:
+    def update_scatter_plot(x_axis: str, y_axis: str, filter: int, sv_clicked_data) -> Figure:
         df["group"] = pd.Categorical(df["group"])
-        print(filter, sp_clicked_data)
-        global last_filter
-
-        if filter != last_filter and sp_clicked_data is not None:
-            sp_clicked_data = None
 
         if filter == 1:
             num_unique = len(df[filters[filter]].unique())
@@ -65,16 +60,25 @@ def render(app: Dash):
             fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter], color_discrete_sequence=colorscale,
                              hover_data=['team'])
 
-        if sp_clicked_data is not None and 'points' in sp_clicked_data:
-            clicked_team = sp_clicked_data['points'][0]['customdata'][0]
-            team_selector = (df['team'] == clicked_team)
-            fig.update_traces(
-                marker=dict(size=12, line=dict(width=2, color='DarkSlateGray')),
-                selector=dict(mode='markers', customdata=clicked_team)
-            )
+        if sv_clicked_data is not None and 'points' in sv_clicked_data:
+            team_indices = [point['pointNumber'] for point in sv_clicked_data['points']]
+            team_names = [team for index, team in enumerate(teams_from_pca) if index in team_indices]
 
-        last_filter = filter
+            for i, trace in enumerate(fig.data):
+                trace_team = trace.customdata[0][0]
+                if trace_team in team_names:
+                    fig.data[i].update(marker=dict(size=12, line=dict(width=2, color='DarkSlateGray')))
+                    fig.data[i].update()
         return fig
+
+    @app.callback(
+        Output(ids.DUMMY_OUTPUT, 'children'),
+        Input(ids.LOCK_TEAMS_CHECKBOX, "value")
+    )
+    def update_lock_teams_checkbox(checkbox_value):
+        global locked
+        locked = checkbox_value
+        return None
 
     @app.callback(
         Output(ids.SCATTER_PLOT, "figure", allow_duplicate=True),
@@ -99,13 +103,10 @@ def render(app: Dash):
          Input(ids.FILTER, "value"),
          Input(ids.SCATTER_PLOT, "clickData")],
     )
-    def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter, sp_clicked_data):
+    def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter,
+                           sp_clicked_data):
         selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4]
         filter_name = 'team'
-        global last_filter
-
-        if filter != last_filter and sp_clicked_data is not None:
-            sp_clicked_data = None
 
         if filter == 1:
             filter_name = filters[filter]
@@ -116,7 +117,8 @@ def render(app: Dash):
         filter_key = 'filter_' + filter_name
         df[filter_key] = df[filter_name].map(color_mapping)
 
-        selected_columns = [filter_key] + ([sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None])
+        selected_columns = [filter_key] + (
+            [sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None])
         selected_columns += ['team']
         num_unique = len(df[filter_name].unique())
         colorscale = all_colors[0:num_unique]
@@ -126,6 +128,8 @@ def render(app: Dash):
         fig.update_layout(coloraxis_colorbar=dict(tickvals=[i for i in range(0, num_unique)],
                                                   ticktext=df[filter_name].unique(),
                                                   tickmode='array'), height=900, width=1100)
+        global teams_from_pca
+        teams_from_pca = df_sorted['team'].values
 
         if sp_clicked_data is not None and 'points' in sp_clicked_data:
             clicked_team = sp_clicked_data['points'][0]['customdata'][0]
@@ -138,13 +142,22 @@ def render(app: Dash):
 
     @app.callback(
         Output(ids.POINT_COMPARISON, 'figure'),
-        [Input(ids.SCATTER_PLOT, 'clickData')]
+        [Input(ids.CLEAR_TEAMS_BUTTON, "n_clicks"),
+         Input(ids.SCATTER_PLOT, 'clickData')]
     )
-    def display_click_data(click_data):
+    def display_click_data(button_click, click_data):
+        global locked, last_click_point_fig, last_button_click, last_clicked_point
+        if button_click != last_button_click:
+            last_button_click = button_click
+            reset_last_clicked_point()
+            return {}
+
+        if locked:
+            return last_click_point_fig
+
         if click_data is None:
             return {}
 
-        global last_clicked_point
         if len(last_clicked_point) == 0:
             last_clicked_point.append(click_data['points'][0])
             return {}
@@ -213,29 +226,7 @@ def render(app: Dash):
                 ),
                 showlegend=False
             ), row=1, col=2)
+            last_click_point_fig = fig
             return fig
-
-    @app.callback(
-        Output('color-bar', 'children'),  # Output to the color-bar div
-        [Input(ids.LAYERS, 'value')]  # Input from layers dropdown
-    )
-    def update_color_bar(selected_statistic):
-        if not selected_statistic or selected_statistic not in df.columns:
-            return html.Div()  # Return empty div if no valid statistic is selected
-
-        # Define your color shades (same as used in scatter plot)
-        color_discrete_map = {
-            'lightblue': '#67D3F3',  # Lighter blue
-            'blue': '#0177D9',  # Regular blue
-            'darkblue': '#01298B',  # Darker blue
-            'navy': '#000F52'  # Navy blue
-        }
-
-        # Create a horizontal bar divided into four color sections
-        color_bar_style = {'display': 'flex', 'height': '20px'}
-        color_sections = [html.Div(style={'background-color': color, 'flex': '1'}) for color in
-                          color_discrete_map.values()]
-
-        return html.Div(color_sections, style=color_bar_style)
 
     return dcc.Graph(id=ids.SCATTER_PLOT)

@@ -5,7 +5,6 @@ from . import y_axis_dropdown
 from . import filter
 from . import search_bar
 from . import scatter_plot
-from . import layers
 
 category_list = ["goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90", "goals_assists_pens_per90",
                  "shots_per90", "gk_shots_on_target_against", "games_complete"]
@@ -23,36 +22,39 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                 ], width=12)
             ]),
             dbc.Row([
+                dbc.Col(
+                    [
+                        html.Div(
+                            dbc.Checkbox(id="lock-teams", label="Lock teams"),
+                            style={'marginTop': '100%'}
+                        ),
+                        html.Div(
+                            dbc.Button("Clear teams", id="clear-teams", color="primary"),
+                        )
+                    ],
+                    width=2
+                ),
                 dbc.Col([
                     html.Div([dcc.Graph(id="point-comparison")])  # Point comparison component
-                ], width=12)
+                ], width=10)
             ]),
             dbc.Row([
                 dbc.Col([
                     html.Div(
                         className="x-dropdown",
                         children=[x_axis_dropdown.render(app)],
-                        style={'width': '70%'},
                     ),
                     html.Div(
                         className="y-dropdown",
                         children=[y_axis_dropdown.render(app)],
-                        style={'width': '70%'},
                     ),
                     html.Div(
                         className="filter",
                         children=[filter.render(app)],
-                        style={'width': '70%'},
                     ),
                     html.Div(
                         className="search-bar",
                         children=[search_bar.render(app)],
-                        style={'width': '70%'},
-                    ),
-                    html.Div(  # Adding the layers dropdown
-                        className="layers",
-                        children=[layers.render(app)],
-                        style={'width': '70%'},
                     ),
                     html.Div(id='color-bar', style={'height': '50px', 'marginTop': '20px'}),  # Color bar
                 ], width=2, style={'marginTop': '3%'}),
@@ -111,6 +113,11 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                         dcc.Graph(id="second-view")
                     ])
                 ], width=10)
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    html.Div(id='dummy-output'),
+                ])
             ])
         ]
     )
