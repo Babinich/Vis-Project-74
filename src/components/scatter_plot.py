@@ -65,8 +65,10 @@ def render(app: Dash):
             team_names = [team for index, team in enumerate(teams_from_pca) if index in team_indices]
 
             for i, trace in enumerate(fig.data):
-                trace_team = trace.customdata[0][0]
-                if trace_team in team_names:
+                trace_team = trace.customdata[0]
+                # the following is done to make sure we do the highlighting for any in the group
+                # all the time
+                if any(x in trace_team for x in team_names):
                     fig.data[i].update(marker=dict(size=12, line=dict(width=2, color='DarkSlateGray')))
                     fig.data[i].update()
         return fig
