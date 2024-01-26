@@ -16,7 +16,7 @@ def render(app: Dash) -> html.Div:
                 options=[{"label": attribute, "value": attribute} for attribute in y_axis_col],
                 value="assists_per90",
                 multi=False, 
-                clearable=False
+                clearable=False,
             ),
         ]
     )

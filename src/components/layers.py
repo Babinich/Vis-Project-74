@@ -17,7 +17,7 @@ def render(app: Dash) -> html.Div:
                 options=[{"label": stat, "value": stat} for stat in statistics],
                 value=statistics[0],  # Default value
                 multi=False,
-                clearable=False
+                clearable=True
             ),
             
         ]

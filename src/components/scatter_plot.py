@@ -5,227 +5,135 @@ from dash import Dash, dcc, Patch, html
 from dash.dependencies import Input, Output
 from plotly.graph_objs import Figure
 from plotly.subplots import make_subplots
+import json
+import plotly.io as pio
 
 from . import ids
 
 TEAM_DATA = pd.read_csv('Data/team_data.csv', delimiter=',')
-df = TEAM_DATA
-last_clicked_point = []
+# data used for creating data frames
+df = TEAM_DATA 
+# filtering options for the scatter plot
 filters = ["team", "group", ("pld_round_of_16", "won_round_of_16", "Round of 16"),
            ("pld_quarter_finals", "won_quarter_finals", "Quarter Finals"),
            ("pld_semi_finals", "won_semi_finals", "Semi Finals"),
            ("pld_third_place", "won_third_place", "Third Place"), ("pld_finals", "won_finals", "Finals")]
-
-
-# can be used to clear the last_clicked_point list
-def reset_points():
-    global last_clicked_point
-    last_clicked_point.clear()
+# all teams names used, for modifing the size of points inside traces
+all_teams = ['Argentina', 'Australia', 'Belgium', 'Brazil', 'Cameroon', 'Canada', 'Costa Rica', 'Croatia', 
+             'Denmark', 'Ecuador', 'England', 'France', 'Germany', 'Ghana', 'Iran', 'Japan', 'Korea Republic', 
+             'Mexico', 'Morocco', 'Netherlands', 'Poland', 'Portugal', 'Qatar', 'Saudi Arabia', 'Senegal', 'Serbia',
+             'Spain', 'Switzerland', 'Tunisia', 'United States', 'Uruguay', 'Wales']
 
 
 def render(app: Dash):
+        
     @app.callback(
-        Output(ids.SCATTER_PLOT, "figure"),
-        [Input(ids.X_AXIS_DROPDOWN, "value"),
-         Input(ids.Y_AXIS_DROPDOWN, "value"),
-         Input(ids.FILTER, "value"),
-         Input(ids.LAYERS, "value")]  # Adding layers input
+    Output(ids.SCATTER_PLOT, "figure"),     # outputs the scatter plor
+    Input(ids.X_AXIS_DROPDOWN, "value"),    # gets the input from X_AXIS_DROPDOWN
+    Input(ids.Y_AXIS_DROPDOWN, "value"),    # gets the input from Y_AXIS_DROPDOWN
+    Input(ids.FILTER,"value"),              # gets the input from FILTER
+    Input(ids.SEARCH_BAR, "value")          # gets the input form SEARCH_BAR
     )
-    def update_scatter_plot(x_axis: str, y_axis: str, filter: int, selected_statistic: str) -> Figure:
 
-        df["group"] = pd.Categorical(df["group"])
+    def update_scatter_plot(x_axis: str, y_axis: str, filter: int, teams: list[str]) -> dcc.Graph:
+        """
+        function creates a scatter plot based on inputs from x_axis, y_axis, filter, and search dropdown
+        input: 
+               x_axis -> inputs attributes that will be ploted on x-axis of the scatterplot
+               y_axis -> inputs attributes that will be ploted on y-axis of the scatterplot
+               filter -> a value that indexes over the set of filters
+               teams  -> a list storing names of the sleceted teams that will have their size changed
+        output:
+               fig -> a figure objet ready for presenting in the layout
+        """
 
-        order_of_categories = [
-            {"group": ["group 1", "group 2", " group 3", "group 4", "group 5", "group 6", "group 7", "group 8"]}]
+        # changing the variable to categorical data in order to create more interactive legend
+        df["group"] = pd.Categorical(df["group"]) 
 
-        # our_color =
-        # Applying the filter and existing scatter plot logic
-        if filter == 1:
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter], hover_data=['team'],
-                             labels={filters[filter]: "Groups"}, category_orders=order_of_categories[0])
-
-        elif (filter > 1) and (filter <= 6):
-            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter][0], symbol=filters[filter][1],
-                             hover_data=['team'],
-                             labels={filters[filter][0]: filters[filter][2], filters[filter][1]: "Result"})
+        # creation of graphs based on the the selected filter
+        if filter == 1: # group filter
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter], opacity=0.7,  hover_data=['team'],
+                             labels={filters[filter]: "Groups"}) # specifing the name in the legend
+            fig.update_traces(marker=dict(size=[8 for _ in range(4)])) # creates a dummy size list, 
+                                                                       # making every point on the graph of size 8
+           
+        elif (filter > 1) and (filter <= 6): # creates filters for ("pld_round_of_16", "won_round_of_16", "Round of 16"),
+                                             #                     ("pld_quarter_finals", "won_quarter_finals", "Quarter Finals"),
+                                             #                     ("pld_semi_finals", "won_semi_finals", "Semi Finals"),
+                                             #                     ("pld_third_place", "won_third_place", "Third Place"), 
+                                             #                     ("pld_finals", "won_finals", "Finals")
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], color=filters[filter][0], opacity=0.7, symbol=filters[filter][1], 
+                             hover_data=['team'], labels={filters[filter][0]: filters[filter][2], filters[filter][1]: "Result" })
+            
+            # used for modyfing the structure of the figure object
+            figure_dict = fig.to_dict() 
+            # gets the number of traces for a initialized figure
+            number_of_traces= len(figure_dict["data"])
+            # gets the number of points per trace, used to get the correct length of dummy size list for each trace, otherwise
+            # size is not customizable 
+            points_per_trace = [(trace["name"], len(trace["customdata"])) for trace in figure_dict["data"]]
+            # updates every trace with correct dummy sieze list
+            for element in points_per_trace:
+                fig.update_traces(marker=dict(size=[8 for _ in range(element[1])]), selector=dict(name=element[0]))
 
         else:
-            if selected_statistic and selected_statistic in df.columns:
-                # Define your color shades for quartiles
-                quartile_labels = ['lightblue', 'blue', 'darkblue', 'navy']
-                quartiles = pd.qcut(df[selected_statistic], 4, labels=quartile_labels)
+            # creates a plot for team filter
+            fig = px.scatter(df, x=df[x_axis], y=df[y_axis], opacity=0.7, hover_data=['team'])
+            # creates the dummy size list
+            fig.update_traces(marker=dict(size=[8 for _ in range(32)]))
 
-                # Adjust shades if they are too similar
-                color_discrete_map = {
-                    'lightblue': '#67D3F3',  # Lighter blue
-                    'blue': '#0177D9',  # Regular blue
-                    'darkblue': '#01298B',  # Darker blue
-                    'navy': '#000F52'  # Navy blue
-                }
+        # used for mifin the strucure of the plot
+        fig_dict = fig.to_dict()
+       
+        # stores the {name of the team : (name of the trace, index of the trace, index of the team inside the trace)}
+        traceback = dict()
+        for trace in range(len(fig_dict["data"])):
+            for indx in range(len(fig_dict["data"][trace]['customdata'])):
+                chosen_team = fig_dict["data"][trace]['customdata'][indx]
+                name = fig_dict["data"][trace]['name']
+                traceback[chosen_team[0]] = (name, trace, indx)
 
-                fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'],
-                                 color=quartiles,  # This assigns a descriptive label to each point
-                                 color_discrete_map=color_discrete_map  # This maps each label to your custom colors
-                                 )
-            else:
-                fig = px.scatter(df, x=df[x_axis], y=df[y_axis], hover_data=['team'])
-
-        # Update layout if necessary
-        return fig
-
-    @app.callback(
-        Output(ids.SCATTER_PLOT, "figure", allow_duplicate=True),
-        Input(ids.SEARCH_BAR, "value"),
-        prevent_initial_call=True
-    )
-    def update_markers(teams):
-        teams_count = list(df[df.team.isin(teams)].index)
-        patched_figure = Patch()
-        updated_markers = [
-            "black" if i in teams_count else "blue" for i in range(len(df) + 1)
-        ]
-        patched_figure['data'][0]['marker']['color'] = updated_markers
-        return patched_figure
-
-    @app.callback(
-        Output(ids.SECOND_VIEW, 'figure'),
-        [Input(ids.CATEGORY_DROPDOWN_1, 'value'),
-         Input(ids.CATEGORY_DROPDOWN_2, 'value'),
-         Input(ids.CATEGORY_DROPDOWN_3, 'value'),
-         Input(ids.CATEGORY_DROPDOWN_4, 'value'),
-         Input(ids.FILTER, "value")],
-    )
-    def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter):
-        selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4]
-        filter_name = 'team'
-        if filter == 1:
-            filter_name = filters[filter]
-        elif 1 < filter <= 6:
-            filter_name = filters[filter][0]
-
-        color_mapping = {value: i for i, value in enumerate(df[filter_name].unique())}
-        filter_key = 'filter_' + filter_name
-        num_unique = len(df[filter_name].unique())
-        colorscale = px.colors.qualitative.Set1
-        df[filter_key] = df[filter_name].map(color_mapping)
-
-        selected_columns = [filter_key] + ([sel_val_not_none for sel_val_not_none in selected_values if sel_val_not_none is not None])
-        selected_columns += ['team']
-        df_sorted = df[selected_columns].sort_values(selected_columns)
-
-        fig = px.parallel_categories(df_sorted, dimensions=selected_columns, color=filter_key,
-                                     color_continuous_scale=colorscale[0:num_unique])
-        fig.update_layout(coloraxis_colorbar=dict(tickvals=[i for i in range(0, num_unique)],
-                                                  ticktext=df[filter_name].unique(),
-                                                  tickmode='array'), height=800, width=1000)
-        return fig
-
-    @app.callback(
-        Output(ids.POINT_COMPARISON, 'figure'),
-        [Input(ids.SCATTER_PLOT, 'clickData')]
-    )
-    def display_click_data(click_data):
-        if click_data is None:
-            return {}
-
-        global last_clicked_point
-        if len(last_clicked_point) == 0:
-            last_clicked_point.append(click_data['points'][0])
-            return {}
-        elif len(last_clicked_point) == 1:
-            point1 = last_clicked_point.pop()
-            point2 = click_data['points'][0]
-            last_clicked_point.append(point2)
-            point1_detail = df[df['team'] == point1['customdata'][0]]
-            point2_detail = df[df['team'] == point2['customdata'][0]]
-
-            attributes1 = ["goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90",
-                           "goals_assists_pens_per90", "shots_per90", "shots_on_target_per90"]
-            attributes2 = ["gk_shots_on_target_against", "gk_save_pct", "possession", "passes_pct",
-                           "average_shot_distance", "dribbles_completed_pct", "fouled", "avg_age"]
-
-            fig = make_subplots(rows=1, cols=2)
-
-            values1 = point1_detail[attributes1].values[0]
-            values2 = point2_detail[attributes1].values[0]
-
-            fig.add_trace(go.Bar(
-                x=attributes1,
-                y=values1,
-                orientation='v',
-                name=point1['customdata'][0],
-                marker=dict(
-                    color='rgba(58, 71, 80, 0.6)',
-                    line=dict(color='rgba(58, 71, 80, 1.0)', width=1)
-                ),
-                showlegend=True
-            ), row=1, col=1)
-            fig.add_trace(go.Bar(
-                x=attributes1,
-                y=values2,
-                orientation='v',
-                name=point2['customdata'][0],
-                marker=dict(
-                    color='rgba(246, 78, 139, 0.6)',
-                    line=dict(color='rgba(246, 78, 139, 1.0)', width=1)
-                ),
-                showlegend=True
-            ), row=1, col=1)
-
-            values3 = point1_detail[attributes2].values[0]
-            values4 = point2_detail[attributes2].values[0]
-
-            fig.add_trace(go.Bar(
-                x=attributes2,
-                y=values3,
-                orientation='v',
-                name=point1['customdata'][0],
-                marker=dict(
-                    color='rgba(58, 71, 80, 0.6)',
-                    line=dict(color='rgba(58, 71, 80, 1.0)', width=1)
-                ),
-                showlegend=False
-            ), row=1, col=2)
-            fig.add_trace(go.Bar(
-                x=attributes2,
-                y=values4,
-                orientation='v',
-                name=point2['customdata'][0],
-                marker=dict(
-                    color='rgba(246, 78, 139, 0.6)',
-                    line=dict(color='rgba(246, 78, 139, 1.0)', width=1)
-                ),
-                showlegend=False
-            ), row=1, col=2)
-
-            fig.update_layout(
-                barmode='group',
-                height=700,
-                width=600,
-            )
+        # print(traceback)       
+        
+        # this dictionary is going to store the intial value of the dummy size list, based on the selected team in search bar
+        # format {name of the trace: dummy size list, list of indexes that need to be changed (indexes are taken from the traceback)}
+        update_size_call = dict()
+        if teams == None:
+            # that way reset the update_size_call whan no teams are selected
+            update_size_call = dict()
             return fig
+        else: 
+            for team in teams:
+                label = traceback[team][0]
+                indx_trace = traceback[team][1]
+                indx_team = traceback[team][2]
+                if label not in update_size_call.keys() and type(fig_dict["data"][indx_trace]["marker"]["size"]) == int:
+                   update_size_call[label] = [[fig_dict["data"][indx_trace]["marker"]["size"]], [indx_team]] # case distinction 
+                                                                                                             # for team filter
 
-    @app.callback(
-        Output('color-bar', 'children'),  # Output to the color-bar div
-        [Input(ids.LAYERS, 'value')]  # Input from layers dropdown
-    )
-    def update_color_bar(selected_statistic):
-        if not selected_statistic or selected_statistic not in df.columns:
-            return html.Div()  # Return empty div if no valid statistic is selected
+                elif label not in update_size_call.keys() and type(fig_dict["data"][indx_trace]["marker"]["size"]) == list:
+                    update_size_call[label] = [fig_dict["data"][indx_trace]["marker"]["size"], [indx_team]]
 
-        # Define your color shades (same as used in scatter plot)
-        color_discrete_map = {
-            'lightblue': '#67D3F3',  # Lighter blue
-            'blue': '#0177D9',  # Regular blue
-            'darkblue': '#01298B',  # Darker blue
-            'navy': '#000F52'  # Navy blue
-        }
+                if label in update_size_call.keys() and indx_team not in update_size_call[label][1]:
+                    update_size_call[label][1].append(indx_team) # appends the unique indexes that need modifing
 
-        # Create a horizontal bar divided into four color sections
-        color_bar_style = {'display': 'flex', 'height': '20px'}
-        color_sections = [html.Div(style={'background-color': color, 'flex': '1'}) for color in
-                          color_discrete_map.values()]
+            # print(update_size_call)
+                    
+            # stores only the name of the trace that has to be updated and the updated dummy size list
+            # format {name of the trace : updated dummy size list}
+            update_size_out = dict()
+            for key in update_size_call.keys():
+                indx_modify = update_size_call[key][1]
+                updated_size = update_size_call[key][0]
+                for index in indx_modify:
+                    updated_size[index] = 16
+                update_size_out[key] = updated_size
+            # print(update_size_out)
 
-        return html.Div(color_sections, style=color_bar_style)
+            # updates traces that are inside the update_size_out
+            for key in update_size_out:
+                fig.update_traces(marker_size=update_size_out[key], selector=dict(name=key))
+            
+        return fig
 
     return dcc.Graph(id=ids.SCATTER_PLOT)

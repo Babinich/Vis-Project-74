@@ -5,8 +5,13 @@ from . import y_axis_dropdown
 from . import filter
 from . import search_bar
 from . import scatter_plot
+from . import point_comparison
 from . import layers
-
+from . import cat_1_pca
+from . import cat_2_pca
+from . import cat_3_pca
+from . import cat_4_pca
+from . import pca
 
 
 
@@ -49,11 +54,11 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                         children=[search_bar.render(app)],
                         style={'width': '70%'},
                     ),
-                    html.Div(  # Adding the layers dropdown
-                        className="layers",
-                        children=[layers.render(app)],
-                        style={'width': '70%'},
-                    ),
+                    # html.Div(  # Adding the layers dropdown
+                    #     className="layers",
+                    #     children=[layers.render(app)],
+                    #     style={'width': '70%'},
+                    # ),
                     html.Div(id='color-bar', style={'height': '50px', 'marginTop': '20px'}),  # Color bar
                 ], width=2, style={'marginTop': '3%'}),
 
@@ -63,61 +68,56 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                         children=[scatter_plot.render(app)],
                         style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}
                     )
-                ], width=8),
+                ], width=5),
 
                 dbc.Col([
-                    html.Div([dcc.Graph(id="point-comparison")])  # Point comparison component
-                ], width=2)
+                    html.Div(
+                        className="point-comparison",
+                        children=[point_comparison.render(app)],
+                        style={"vertical-align": 'top'}
+                    )
+                    # html.Div(dcc.Graph(id="point-comparison"),
+                    #          style={'vertical-align': 'top'})  # Point comparison component
+                ], width=5)
             ]),
             dbc.Row([
                 dbc.Col([
                     html.Div(
-                        dcc.Dropdown(
-                            id='cat-1',
-                            options=category_list,
-                            value=category_list[0],
-                            multi=False,
-                            placeholder="Select category 1",
-                            style={'marginTop': '3.5rem'},
-                        ),
+                        className="cat-1-pca",
+                        children=[cat_1_pca.render(app)],
+                        style={'marginTop': '3.5rem'},
                     ),
                     html.Div(
-                        dcc.Dropdown(
-                            id='cat-2',
-                            options=category_list,
-                            value=category_list[1],
-                            multi=False,
-                            placeholder="Select category 2",
-                            style={'marginTop': '1rem'},
-                        ),
+                        className="cat-2-pca",
+                        children=[cat_2_pca.render(app)],
+                        style={'marginTop': '1rem'},                       
                     ),
                     html.Div(
-                        dcc.Dropdown(
-                            id='cat-3',
-                            options=category_list,
-                            multi=False,
-                            placeholder="Select category 3",
-                            style={'marginTop': '1rem'},
-                        ),
+                        className="cat-3-pca",
+                        children=[cat_3_pca.render(app)],
+                        style={'marginTop': '1rem'},
                     ),
                     html.Div(
-                        dcc.Dropdown(
-                            id='cat-4',
-                            options=category_list,
-                            multi=False,
-                            placeholder="Select category 4",
-                            style={'marginTop': '1rem'},
-                        ),
+                        className="cat-4-pca",
+                        children=[cat_4_pca.render(app)],
+                        style={'marginTop': '1rem'},
                     ),
                 ], width=2, style={'marginTop': '3%'}),
                 dbc.Col([
-                    html.Div([
-                        dcc.Graph(id="second-view")
-                    ])
+                    html.Div(
+                        className="pca",
+                        children=[pca.render(app)],                 
+                    )
                 ], width=10)
             ])
         ]
     )
+
+
+
+
+
+
 
 
 # html.Div(
