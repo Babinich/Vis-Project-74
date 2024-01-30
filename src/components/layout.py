@@ -5,7 +5,12 @@ from . import y_axis_dropdown
 from . import filter
 from . import search_bar
 from . import scatter_plot
-
+from . import point_comparison
+from . import cat_1_pca
+from . import cat_2_pca
+from . import cat_3_pca
+from . import cat_4_pca
+# from . import pca  can be added if issue with global variables will be resolved
 category_list = ["goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90", "goals_assists_pens_per90",
                  "shots_per90", "gk_shots_on_target_against", "games_complete"]
 
@@ -25,21 +30,33 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                 dbc.Col(
                     [
                         html.Div(
+                            html.H5("Point comparison control"),
+                            style={'position': 'relative', 'top': '180px'}
+                        ),                         
+                        html.Div(
                             dbc.Checkbox(id="lock-teams", label="Lock teams"),
                             style={'marginTop': '100%'}
                         ),
                         html.Div(
                             dbc.Button("Clear teams", id="clear-teams", color="primary"),
-                        )
+                        ),
                     ],
                     width=2
                 ),
                 dbc.Col([
-                    html.Div([dcc.Graph(id="point-comparison")])  # Point comparison component
+   
+                    html.Div(
+                        className="point-comparison",
+                        children=[point_comparison.render(app)],
+                        style={"vertical-align": 'top'}
+                    ) # Point comparison component
                 ], width=10)
             ]),
             dbc.Row([
                 dbc.Col([
+                    html.Div(
+                        html.H5("Scatter plot features selection"),
+                    ),    
                     html.Div(
                         className="x-dropdown",
                         children=[x_axis_dropdown.render(app)],
@@ -56,8 +73,18 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                         className="search-bar",
                         children=[search_bar.render(app)],
                     ),
-                    html.Div(id='color-bar', style={'height': '50px', 'marginTop': '20px'}),  # Color bar
-                ], width=2, style={'marginTop': '3%'}),
+                    html.Div(
+                        html.H5("Relation selection"),
+                        style={'marginTop': '15%'}
+                    ),
+                    html.Div(
+                        dbc.Checkbox(id="clear-scatter", label="show PCA -> Scatter"),
+
+                    ),
+                    html.Div(
+                        dbc.Checkbox(id="clear-pca", label="show Scatter -> PCA"),
+                        
+                    ),], width=2, style={'marginTop': '3%'}),
 
                 dbc.Col([
                     html.Div(
@@ -65,52 +92,38 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                         children=[scatter_plot.render(app)],
                         style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}
                     )
-                ], width=10),
+                ], width=10, style={'position': 'relative', 'top': '5px'}),
             ]),
             dbc.Row([
                 dbc.Col([
                     html.Div(
-                        dcc.Dropdown(
-                            id='cat-1',
-                            options=category_list,
-                            value=category_list[0],
-                            multi=False,
-                            placeholder="Select category 1",
-                            style={'marginTop': '3.5rem'},
-                        ),
+                        html.H5("PCA attributes selection"),
+                        style={'position': 'relative', 'top': '30px'},
+                    ),                    
+                    html.Div(
+                        className="cat-1-pca",
+                        children=[cat_1_pca.render(app)],
+                        style={'marginTop': '3.5rem'},
                     ),
                     html.Div(
-                        dcc.Dropdown(
-                            id='cat-2',
-                            options=category_list,
-                            value=category_list[1],
-                            multi=False,
-                            placeholder="Select category 2",
-                            style={'marginTop': '1rem'},
-                        ),
+                        className="cat-2-pca",
+                        children=[cat_2_pca.render(app)],
+                        style={'marginTop': '1rem'},                       
                     ),
                     html.Div(
-                        dcc.Dropdown(
-                            id='cat-3',
-                            options=category_list,
-                            multi=False,
-                            placeholder="Select category 3",
-                            style={'marginTop': '1rem'},
-                        ),
+                        className="cat-3-pca",
+                        children=[cat_3_pca.render(app)],
+                        style={'marginTop': '1rem'},
                     ),
                     html.Div(
-                        dcc.Dropdown(
-                            id='cat-4',
-                            options=category_list,
-                            multi=False,
-                            placeholder="Select category 4",
-                            style={'marginTop': '1rem'},
-                        ),
+                        className="cat-4-pca",
+                        children=[cat_4_pca.render(app)],
+                        style={'marginTop': '1rem'},
                     ),
-                ], width=2, style={'marginTop': '3%'}),
+                ], width=2),
                 dbc.Col([
                     html.Div([
-                        dcc.Graph(id="second-view")
+                        dcc.Graph(id="pca")
                     ])
                 ], width=10)
             ]),
