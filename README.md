@@ -16,6 +16,15 @@ This section explains the structure of this repository, and all the code in it.
 - search_bar.py: allows for detecting given data point in scatter plot (needs more development)
 - ids.py: contains all ids of every component
 - layout.py: specifies the layout of the app
+- point_comparison.py: Manages the interactive point comparison chart, updating the visualization based on user selections and interactions within the scatter plot.
+- cat_1_pca.py: Sets up a dropdown for selecting the first category for PCA analysis.
+- cat_2_pca.py: Sets up a dropdown for selecting the second category for PCA analysis.
+- cat_3_pca.py: Sets up a dropdown for selecting the third category for PCA analysis.
+- cat_4_pca.py: Sets up a dropdown for selecting the fourth category for PCA analysis.
+- main.py: Initializes the Dash application, sets the page title, applies the Bootstrap theme for styling, and defines the layout with the create_layout function. Runs the app in debug mode.
+
+- ### How to launch the app
+- By running the 'main.py' file you receive a link which redirects you to the browser-version of the app, where you can adjust and select the data you want to view 
 
                      
                      
