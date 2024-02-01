@@ -43,15 +43,15 @@ for column in numerical_columns:
 
 
 def render(app: Dash):
-    # ########################################################### SCATTER PLOT
-    # #################################################### outputs the scatter plot
+    # ########################################################### SCATTER PLOT ################################################
+    # #################################################### outputs the scatter plot ###########################################
 
     @app.callback(
         Output(ids.SCATTER_PLOT, "figure"),  # outputs the scatter plor
         [Input(ids.X_AXIS_DROPDOWN, "value"),  # gets the input from X_AXIS_DROPDOWN
          Input(ids.Y_AXIS_DROPDOWN, "value"),  # gets the input from Y_AXIS_DROPDOWN
          Input(ids.FILTER, "value"),  # gets the input from FILTER
-         Input(ids.PCA, "clickData"),  # gets the teams from PCA
+         Input(ids.PCP, "clickData"),  # gets the teams from PCA
          Input(ids.SEARCH_BAR, "value"),  # gets the input form SEARCH_BAR
          Input(ids.CLEAR_SCATTER_BUTTON, "value")]  # get imput form clear CLEAR_SCATTER_BUTTON
     )
@@ -180,18 +180,18 @@ def render(app: Dash):
                 fig.update_traces(marker_size=update_size_out[key], selector=dict(name=key))
         return fig
 
-    # ################################################################## PCA (Second view)
-    # ############################################################## outputs the PCA (second view) plot
+    # ################################################################## PCP (Second view) ############################################
+    # ############################################################## outputs the PCP (second view) plot ###############################
 
     @app.callback(
-        Output(ids.PCA, 'figure'),
+        Output(ids.PCP, 'figure'),
         [Input(ids.CATEGORY_DROPDOWN_1, 'value'),
          Input(ids.CATEGORY_DROPDOWN_2, 'value'),
          Input(ids.CATEGORY_DROPDOWN_3, 'value'),
          Input(ids.CATEGORY_DROPDOWN_4, 'value'),
          Input(ids.FILTER, "value"),
          Input(ids.SCATTER_PLOT, "clickData"),
-         Input(ids.CLEAR_PCA_BUTTON, "value")]
+         Input(ids.CLEAR_PCP_BUTTON, "value")]
     )
     def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter,
                            sp_clicked_data, clicked):

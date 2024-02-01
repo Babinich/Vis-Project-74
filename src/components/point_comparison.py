@@ -104,7 +104,9 @@ def render(app: Dash):
                     line=dict(color='rgba(246, 78, 139, 1.0)', width=1)
                 ),
                 showlegend=True
-            ), row=1, col=1)
+            ), 
+            row=1, col=1)
+         
 
             values3 = point1_detail[attributes2].values[0]
             values4 = point2_detail[attributes2].values[0]
