@@ -11,7 +11,7 @@ def render(app: Dash) -> html.Div:
 
     return html.Div(
         children=[
-            html.Label("PCA 2nd category"),
+            html.Label("PCP 2nd category"),
             dcc.Dropdown(
                 id=ids.CATEGORY_DROPDOWN_2,
                 options=category_list,
