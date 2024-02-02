@@ -43,8 +43,8 @@ for column in numerical_columns:
 
 
 def render(app: Dash):
-    # ########################################################### SCATTER PLOT ################################################
-    # #################################################### outputs the scatter plot ###########################################
+    # #################################################### SCATTER PLOT ################################################
+    # ############################################## outputs the scatter plot ##########################################
 
     @app.callback(
         Output(ids.SCATTER_PLOT, "figure"),  # outputs the scatter plor
@@ -180,8 +180,8 @@ def render(app: Dash):
                 fig.update_traces(marker_size=update_size_out[key], selector=dict(name=key))
         return fig
 
-    # ################################################################## PCP (Second view) ############################################
-    # ############################################################## outputs the PCP (second view) plot ###############################
+    # ################################################### PCP (Second view) ###########################################
+    # ############################################ outputs the PCP (second view) plot #################################
 
     @app.callback(
         Output(ids.PCP, 'figure'),
@@ -195,6 +195,22 @@ def render(app: Dash):
     )
     def update_second_view(selected_value_1, selected_value_2, selected_value_3, selected_value_4, filter,
                            sp_clicked_data, clicked):
+        """
+        Callback function to create/update the Parallel Categories Plot (PCP) based on user inputs.
+
+        input:
+        - selected_value_1 (any): Value selected in CATEGORY_DROPDOWN_1.
+        - selected_value_2 (any): Value selected in CATEGORY_DROPDOWN_2.
+        - selected_value_3 (any): Value selected in CATEGORY_DROPDOWN_3.
+        - selected_value_4 (any): Value selected in CATEGORY_DROPDOWN_4.
+        - filter (int): Filter value determining which filter to apply.
+        - sp_clicked_data (dict): Click data from the Scatter Plot.
+        - clicked (any): Value indicating if the Clear Button is clicked.
+
+        output:
+        - fig (plotly.graph_objs.Figure): Updated Parallel Categories Plot.
+        """
+
         selected_values = [selected_value_1, selected_value_2, selected_value_3, selected_value_4]
         filter_name = 'team'
 
@@ -203,6 +219,7 @@ def render(app: Dash):
         elif 1 < filter <= 6:
             filter_name = filters[filter][0]
 
+        # map the colors to the correct entries as in scatter plot
         color_mapping = {value: i for i, value in enumerate(df_pca[filter_name].unique())}
         filter_key = 'filter_' + filter_name
         df_pca[filter_key] = df_pca[filter_name].map(color_mapping)
@@ -212,12 +229,17 @@ def render(app: Dash):
         selected_columns += ['team']
         num_unique = len(df_pca[filter_name].unique())
         colorscale = all_colors[0:num_unique]
+
+        # sort the df for selected columns
         df_sorted = df_pca[selected_columns].sort_values(selected_columns)
+
         fig = px.parallel_categories(df_sorted, dimensions=selected_columns, color=filter_key,
                                      color_continuous_scale=colorscale)
         fig.update_layout(coloraxis_colorbar=dict(tickvals=[i for i in range(0, num_unique)],
                                                   ticktext=df_pca[filter_name].unique(),
                                                   tickmode='array'), height=900, width=1100)
+
+        # update the global order of teams to be used in scatter plot
         global teams_from_pca
         teams_from_pca = df_sorted['team'].values
 

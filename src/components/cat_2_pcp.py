@@ -1,7 +1,7 @@
 from dash import Dash, html, dcc
-from dash.dependencies import Input, Output
 
 from . import ids
+
 
 def render(app: Dash) -> html.Div:
 

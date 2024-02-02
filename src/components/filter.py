@@ -1,11 +1,9 @@
 from dash import Dash, html, dcc
-from dash.dependencies import Input, Output
 
 from . import ids
 
-def render(app: Dash) -> html.Div:
 
-    filters = ["teams", "group_stage", "round_of_16", "quarter_finals", "semi_finals", "third_place", "finals"] 
+def render(app: Dash) -> html.Div:
 
     return html.Div(
         children=[

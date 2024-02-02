@@ -1,9 +1,8 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
-from dash import Dash, dcc, Patch, html
+from dash import Dash, dcc
 from dash.dependencies import Input, Output
-from plotly.graph_objs import Figure
 from plotly.subplots import make_subplots
 
 from . import ids
@@ -25,32 +24,58 @@ last_click_point_fig = None
 last_button_click = None
 
 
+# used to clear the last_clicked_point list
 def reset_last_clicked_point():
     global last_clicked_point
     last_clicked_point = []
 
 
-# can be used to clear the last_clicked_point list
-
 def render(app: Dash):
 
-    @app.callback(
-    Output(ids.DUMMY_OUTPUT, 'children'),
-    Input(ids.LOCK_TEAMS_CHECKBOX, "value")
-    )
+    # #################################################### LOCK TEAMS CHECKBOX #########################################
+    # ############################################### locks the current clicked teams ##################################
 
+    @app.callback(
+        Output(ids.DUMMY_OUTPUT, 'children'),
+        Input(ids.LOCK_TEAMS_CHECKBOX, "value")
+    )
     def update_lock_teams_checkbox(checkbox_value):
+        """
+        Callback function to update the global variable 'locked' based on the value of the Lock Teams Checkbox.
+
+        input:
+        - checkbox_value (any): Value of the Lock Teams Checkbox.
+
+        output:
+        - None: The function returns None, as it updates a global variable without generating any output.
+        """
         global locked
         locked = checkbox_value
         return None
-        
+
+    # #################################################### POINT COMPARISON PLOT #######################################
+    # ############################################### renders the plot to compare points ###############################
+
     @app.callback(
         Output(ids.POINT_COMPARISON, 'figure'),
         [Input(ids.CLEAR_TEAMS_BUTTON, "n_clicks"),
          Input(ids.SCATTER_PLOT, 'clickData')]
     )
     def display_click_data(button_click, click_data):
+        """
+        Callback function to plot comparisons between two selected points from the Scatter Plot.
+
+        input:
+        - button_click (int): Number of clicks on the Clear Teams Button.
+        - click_data (dict): Click data from the Scatter Plot.
+
+        output:
+        - fig (plotly.graph_objs.Figure): Figure representing the comparison between two selected points.
+        """
+
         global locked, last_click_point_fig, last_button_click, last_clicked_point
+
+        # check if there's a new button click for clear_teams_button
         if button_click != last_button_click:
             last_button_click = button_click
             reset_last_clicked_point()
@@ -62,10 +87,10 @@ def render(app: Dash):
         if click_data is None:
             return {}
 
-        if len(last_clicked_point) == 0:
+        if len(last_clicked_point) == 0:  # 1st point clicked
             last_clicked_point.append(click_data['points'][0])
             return {}
-        elif len(last_clicked_point) == 1:
+        elif len(last_clicked_point) == 1:  # 2nd point clicked
             point1 = last_clicked_point.pop()
             point2 = click_data['points'][0]
             last_clicked_point.append(point2)
@@ -78,7 +103,6 @@ def render(app: Dash):
                            "average_shot_distance", "dribbles_completed_pct", "fouled", "avg_age"]
 
             fig = make_subplots(rows=1, cols=2)
-            
 
             values1 = point1_detail[attributes1].values[0]
             values2 = point2_detail[attributes1].values[0]
@@ -104,9 +128,8 @@ def render(app: Dash):
                     line=dict(color='rgba(246, 78, 139, 1.0)', width=1)
                 ),
                 showlegend=True
-            ), 
-            row=1, col=1)
-         
+            ),
+                row=1, col=1)
 
             values3 = point1_detail[attributes2].values[0]
             values4 = point2_detail[attributes2].values[0]
@@ -134,8 +157,7 @@ def render(app: Dash):
                 showlegend=False
             ), row=1, col=2)
             last_click_point_fig = fig
-            
-            return fig      
-   
+
+            return fig
 
     return dcc.Graph(id=ids.POINT_COMPARISON)

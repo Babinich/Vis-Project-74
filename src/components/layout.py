@@ -10,7 +10,7 @@ from . import cat_1_pcp
 from . import cat_2_pcp
 from . import cat_3_pcp
 from . import cat_4_pcp
-# from . import pca  can be added if issue with global variables will be resolved
+
 category_list = ["goals_per90", "assists_per90", "goals_pens_per90", "goals_assists_per90", "goals_assists_pens_per90",
                  "shots_per90", "gk_shots_on_target_against", "games_complete"]
 
@@ -44,7 +44,6 @@ def create_layout(app: Dash) -> dbc.Container:  # we get the information from th
                     width=2
                 ),
                 dbc.Col([
-   
                     html.Div(
                         className="point-comparison",
                         children=[point_comparison.render(app)],
