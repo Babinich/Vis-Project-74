@@ -24,10 +24,10 @@ This section explains the structure of this repository, and all the code in it.
 - main.py: Initializes the Dash application, sets the page title, applies the Bootstrap theme for styling, and defines the layout with the create_layout function. Runs the app in debug mode.
 
 - ### How to launch the app
-- By running the 'main.py' file you receive a link which redirects you to the browser-version of the app, where you can adjust and select the data you want to view
+By running the 'main.py' file you receive a link which redirects you to the browser-version of the app, where you can adjust and select the data you want to view
 
 - ### Attributes description
-Certainly, here are short descriptions for each attribute:
+Here are the attributes used in our code, including a short description for each attribute
 
 - **goals_per90**: Average number of goals scored by a team per 90 minutes of play.
 - **assists_per90**: Average number of assists made by a team per 90 minutes.
