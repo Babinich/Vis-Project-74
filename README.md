@@ -1,17 +1,17 @@
-# Visteam
-## Visualisation project - Goup 74
+# DataDribbler
+**Visualisation project - Goup 74**
 
-### How to launch the app
+## How to launch the app
 On running the 'main.py' file, the app is hosted on default port for dash `8050`. Therefore the app can be accessed on [http://localhost:8050](http://127.0.0.1:8050/)
 
-### Repository structure
+## Repository structure
 This section explains the structure of this repository, and all the code in it.
 
-#### Directory structure
+### Directory structure
 - Data: It contains two data sets, "filter_data.csv" and "team_data.csv". "team_data.csv" is the main file with all necessary data for visulisation.
 - src/components: Inside this folder we store every components and layouts used for visualisation. All callbacks are being coded inside given component. That's the only place where we can implement callbacks. Every component has it's own ID. Every ID is listed in "ids.py".
 
-#### Code structure
+### Code structure
 - scatter_plot.py: creates main scatter plot
 - x_axis_dropdown.py: dropdown reponsible for x axis
 - y_axis_dropdown.py: dropdown reponsible for y axis
@@ -26,7 +26,7 @@ This section explains the structure of this repository, and all the code in it.
 - cat_4_pca.py: Sets up a dropdown for selecting the fourth category for PCA analysis.
 - main.py: Initializes the Dash application, sets the page title, applies the Bootstrap theme for styling, and defines the layout with the create_layout function. Runs the app in debug mode.
 
-### Attributes description
+## Attributes description
 Here are the attributes used in our code, including a short description for each attribute
 
 - **goals_per90**: Average number of goals scored by a team per 90 minutes of play.
@@ -63,13 +63,13 @@ Here are the attributes used in our code, including a short description for each
 - **avg_age**: Average age of the team's players.
 - **cards_yellow**: Number of yellow cards received by the team.
 
-### Screenshots
-#### Scatter plot
+## Screenshots
+### Scatter plot
 <img width="1370" alt="Screen Shot 2024-02-02 at 11 44 47" src="https://github.com/Babinich/Vis-Project-74/assets/41565823/e4e012e7-35ea-498f-9718-883a5bb0b4bb">
 
-#### Parallel categories plot
+### Parallel categories plot
 <img width="1410" alt="Screen Shot 2024-02-02 at 11 46 11" src="https://github.com/Babinich/Vis-Project-74/assets/41565823/00c04cda-0da4-4331-a97b-cb6ed6c3bcf4">
 
-#### Point comparison plot
+### Point comparison plot
 <img width="1276" alt="Screen Shot 2024-02-02 at 11 46 30" src="https://github.com/Babinich/Vis-Project-74/assets/41565823/4332d04b-d151-47c1-bf75-704e3ea6a0f5">
 
