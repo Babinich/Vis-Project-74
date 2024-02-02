@@ -1,6 +1,9 @@
 # Visteam
 ## Visualisation project - Goup 74
 
+### How to launch the app
+On running the 'main.py' file, the app is hosted on default port for dash `8050`. Therefore the app can be accessed on [http://localhost:8050](http://127.0.0.1:8050/)
+
 ### Repository structure
 This section explains the structure of this repository, and all the code in it.
 
@@ -23,10 +26,7 @@ This section explains the structure of this repository, and all the code in it.
 - cat_4_pca.py: Sets up a dropdown for selecting the fourth category for PCA analysis.
 - main.py: Initializes the Dash application, sets the page title, applies the Bootstrap theme for styling, and defines the layout with the create_layout function. Runs the app in debug mode.
 
-- ### How to launch the app
-By running the 'main.py' file you receive a link which redirects you to the browser-version of the app, where you can adjust and select the data you want to view
-
-- ### Attributes description
+### Attributes description
 Here are the attributes used in our code, including a short description for each attribute
 
 - **goals_per90**: Average number of goals scored by a team per 90 minutes of play.
