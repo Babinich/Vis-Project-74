@@ -62,3 +62,14 @@ Here are the attributes used in our code, including a short description for each
 - **fouled**: Number of times players of the team have been fouled.
 - **avg_age**: Average age of the team's players.
 - **cards_yellow**: Number of yellow cards received by the team.
+
+### Screenshots
+#### Scatter plot
+<img width="1370" alt="Screen Shot 2024-02-02 at 11 44 47" src="https://github.com/Babinich/Vis-Project-74/assets/41565823/e4e012e7-35ea-498f-9718-883a5bb0b4bb">
+
+#### Parallel categories plot
+<img width="1410" alt="Screen Shot 2024-02-02 at 11 46 11" src="https://github.com/Babinich/Vis-Project-74/assets/41565823/00c04cda-0da4-4331-a97b-cb6ed6c3bcf4">
+
+#### Point comparison plot
+<img width="1276" alt="Screen Shot 2024-02-02 at 11 46 30" src="https://github.com/Babinich/Vis-Project-74/assets/41565823/4332d04b-d151-47c1-bf75-704e3ea6a0f5">
+
